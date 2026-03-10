@@ -1,0 +1,27 @@
+# Personal settings — do not commit to git
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+
+# Cache
+.cache/
+*.log
+
+# VS Code
+.vscode/
+
+# Datasets and model weights (usually large files)
+DATASET/
+data/
+*.pt
+*.pth
+*.ckpt
+*.bin
+*.safetensors

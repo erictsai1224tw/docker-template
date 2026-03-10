@@ -1,0 +1,47 @@
+name: ${PROJECT_NAME:-my-project}
+
+services:
+  # ── Single container — personal settings are passed in via .env ───
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ${PROJECT_NAME:-my-project}
+    runtime: nvidia
+    shm_size: '64gb'
+    ports:
+      - "8888"   # Jupyter
+      - "6006"   # TensorBoard
+      - "8080"   # General HTTP
+      - "3000"   # General HTTP
+      - "5000"   # General HTTP
+      - "8000"   # General HTTP
+      - "9000"   # General HTTP
+      - "6379"   # Redis
+    volumes:
+      - .:/app
+      - ${HOME}/.ssh:/.ssh
+      # Mount external datasets — adjust path per project:
+      # - /path/to/dataset:/app/DATASET
+      # Mount HuggingFace cache to avoid repeated downloads:
+      # - huggingface_cache:/cache/huggingface
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - WANDB_API_KEY=${WANDB_API_KEY:-}
+      - HUGGINGFACE_HUB_TOKEN=${HUGGINGFACE_HUB_TOKEN:-}
+      - TZ=Asia/Taipei
+      - GIT_NAME=${GIT_NAME:-}
+      - GIT_EMAIL=${GIT_EMAIL:-}
+      - COLORTERM=truecolor
+    # Set git identity from .env at container startup
+    command: >
+      bash -c "
+        [ -n \"$$GIT_NAME\" ]  && git config --global user.name  \"$$GIT_NAME\";
+        [ -n \"$$GIT_EMAIL\" ] && git config --global user.email \"$$GIT_EMAIL\";
+        exec sleep infinity
+      "
+    stdin_open: true
+    tty: true
+
+# volumes:
+#   huggingface_cache:

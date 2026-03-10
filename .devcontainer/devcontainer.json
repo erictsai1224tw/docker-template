@@ -1,0 +1,35 @@
+{
+    "name": "Project Dev Container",
+    "dockerComposeFile": "../docker-compose.yml",
+    "service": "app",
+    "workspaceFolder": "/app",
+
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "python.defaultInterpreterPath": "/app/.venv/bin/python",
+                "python.terminal.activateEnvironment": true,
+                "terminal.integrated.defaultProfile.linux": "bash"
+            },
+
+            "extensions": [
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "ms-toolsai.jupyter",
+                "ms-toolsai.vscode-jupyter-cell-tags",
+                "ms-toolsai.vscode-jupyter-slideshow",
+                "charliermarsh.ruff",
+                "ms-python.black-formatter",
+                "ms-python.isort",
+                "eamodio.gitlens",
+                "GitHub.copilot",
+                "ms-vscode.vscode-json",
+                "google.gemini-cli-vscode-ide-companion"
+            ]
+        }
+    },
+    "shutdownAction": "none",
+    "mounts": [
+        "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+    ]
+}
