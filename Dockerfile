@@ -11,8 +11,8 @@ ENV PYTHONUNBUFFERED=1 \
     UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
     UV_PYTHON=3.12 \
-    VIRTUAL_ENV=/app/.venv \
-    PATH="/app/.venv/bin:$PATH" \
+    VIRTUAL_ENV=/venv \
+    PATH="/venv/bin:$PATH" \
     HF_HOME=/cache/huggingface \
     PYTHONPATH=/app:$PYTHONPATH
 
@@ -41,8 +41,8 @@ RUN apt-get update && apt-get install -y \
 
 RUN groupadd -g 1000 docker && \
     useradd -u 1000 -g 1000 -m -s /bin/bash docker && \
-    mkdir -p /cache/huggingface /app && \
-    chown -R docker:docker /cache /app
+    mkdir -p /cache/huggingface /app /venv && \
+    chown -R docker:docker /cache /app /venv
 
 WORKDIR /app
 USER docker
