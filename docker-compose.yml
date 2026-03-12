@@ -18,10 +18,10 @@ services:
     volumes:
     - .:/app
     - ${HOME}/.ssh:/.ssh
-    - ../DATASET:/app/DATASET/DATA3
-    - ../DATA5_DATASET:/app/DATASET/DATA5
+    # - ../DATASET:/app/DATASET/DATA3
+    # - ../DATA5_DATASET:/app/DATASET/DATA5
     # - ../DATA5_DATASET/SPAD_PHOTO:/app/SPAD_PHOTO
-    - /home/user/DATA_SERVER/DISK_1_2/SPAD_PHOTO:/app/SPAD_PHOTO2
+    # - /home/user/DATA_SERVER/DISK_1_2/SPAD_PHOTO:/app/SPAD_PHOTO2
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
       - WANDB_API_KEY=${WANDB_API_KEY:-}

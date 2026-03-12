@@ -12,7 +12,6 @@ ENV PYTHONUNBUFFERED=1 \
     UV_LINK_MODE=copy \
     UV_PYTHON=3.12 \
     VIRTUAL_ENV=/venv \
-    UV_PROJECT_ENVIRONMENT=/venv \
     PATH="/venv/bin:$PATH" \
     HF_HOME=/cache/huggingface \
     PYTHONPATH=/app:$PYTHONPATH
@@ -36,6 +35,7 @@ RUN apt-get update && apt-get install -y \
     libxext6 \
     libxrender-dev \
     libgomp1 \
+    tmux \
     && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
@@ -49,24 +49,31 @@ WORKDIR /app
 USER docker
 
 # --- Project dependencies ---
-# uv.lock is committed to the repo for reproducible builds.
-# Workflow: update pyproject.toml → `make lock` → commit uv.lock → `make build`.
-COPY pyproject.toml uv.lock ./
-RUN uv venv $VIRTUAL_ENV && uv sync --frozen --no-cache
+# pyproject.toml is always present (template provided).
+# uv.lock is optional:
+#   - First build (no uv.lock): uv resolves dependencies and creates the lock file.
+#   - Subsequent builds: copy uv.lock into the project root before building;
+#     then switch to `uv sync --frozen --no-cache` for reproducible installs.
+# Workflow: `make build` → `make lock` → add uv.lock to git → `make build` again.
+COPY pyproject.toml ./
+RUN uv venv $VIRTUAL_ENV && uv sync --no-cache
 # ----------------------------
 
 RUN mkdir -p /home/docker/.npm-global && \
-    chown -R docker:docker /home/docker/.npm-global
+    npm config set prefix '/home/docker/.npm-global'
 
-ENV NPM_CONFIG_PREFIX=/home/docker/.npm-global
+ENV PATH="/home/docker/.npm-global/bin:/home/docker/.local/bin:$PATH"
 
-ENV PATH=$PATH:/home/docker/.npm-global/bin:$HOME/.local/bin
+RUN npm install -g @anthropic-ai/claude-code @google/gemini-cli @github/copilot
 
-ENV NODE_PATH=/home/docker/.npm-global/lib/node_modules
+# --- Miniconda ---
+RUN curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -o /tmp/miniconda.sh && \
+    bash /tmp/miniconda.sh -b -p /home/docker/miniconda3 && \
+    rm /tmp/miniconda.sh && \
+    /home/docker/miniconda3/bin/conda init bash
 
-RUN npm install -g @google/gemini-cli @github/copilot
-
-RUN curl -fsSL https://claude.ai/install.sh | bash
+ENV PATH="/home/docker/miniconda3/bin:$PATH"
+# ------------------
 
 RUN mkdir -p /home/docker/.ssh && \
     chmod 700 /home/docker/.ssh && \
