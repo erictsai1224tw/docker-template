@@ -1,30 +1,27 @@
-name: ${PROJECT_NAME:-my-project}
-
 services:
-  # ── Single container — personal settings are passed in via .env ───
+  # ── 單一 container，個人設定透過 .env 傳入 ───────────────────
   app:
     build:
       context: .
       dockerfile: Dockerfile
-    image: ${PROJECT_NAME:-my-project}
     runtime: nvidia
     shm_size: '64gb'
     ports:
-      - "8888"   # Jupyter
-      - "6006"   # TensorBoard
-      - "8080"   # General HTTP
-      - "3000"   # General HTTP
-      - "5000"   # General HTTP
-      - "8000"   # General HTTP
-      - "9000"   # General HTTP
-      - "6379"   # Redis
+      - "8888"
+      - "6006"
+      - "8080"
+      - "3000"
+      - "5000"
+      - "8000"
+      - "9000"
+      - "6379"
     volumes:
-      - .:/app
-      - ${HOME}/.ssh:/.ssh
-      # Mount external datasets — adjust path per project:
-      # - /path/to/dataset:/app/DATASET
-      # Mount HuggingFace cache to avoid repeated downloads:
-      # - huggingface_cache:/cache/huggingface
+    - .:/app
+    - ${HOME}/.ssh:/.ssh
+    - ../DATASET:/app/DATASET/DATA3
+    - ../DATA5_DATASET:/app/DATASET/DATA5
+    # - ../DATA5_DATASET/SPAD_PHOTO:/app/SPAD_PHOTO
+    - /home/user/DATA_SERVER/DISK_1_2/SPAD_PHOTO:/app/SPAD_PHOTO2
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
       - WANDB_API_KEY=${WANDB_API_KEY:-}
@@ -33,15 +30,8 @@ services:
       - GIT_NAME=${GIT_NAME:-}
       - GIT_EMAIL=${GIT_EMAIL:-}
       - COLORTERM=truecolor
-    # Set git identity from .env at container startup
-    command: >
-      bash -c "
-        [ -n \"$$GIT_NAME\" ]  && git config --global user.name  \"$$GIT_NAME\";
-        [ -n \"$$GIT_EMAIL\" ] && git config --global user.email \"$$GIT_EMAIL\";
-        exec sleep infinity
-      "
     stdin_open: true
     tty: true
-
 # volumes:
 #   huggingface_cache:
+#   ultralytics_cache:

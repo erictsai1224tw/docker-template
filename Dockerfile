@@ -12,6 +12,7 @@ ENV PYTHONUNBUFFERED=1 \
     UV_LINK_MODE=copy \
     UV_PYTHON=3.12 \
     VIRTUAL_ENV=/venv \
+    UV_PROJECT_ENVIRONMENT=/venv \
     PATH="/venv/bin:$PATH" \
     HF_HOME=/cache/huggingface \
     PYTHONPATH=/app:$PYTHONPATH
@@ -48,22 +49,24 @@ WORKDIR /app
 USER docker
 
 # --- Project dependencies ---
-# pyproject.toml is always present (template provided).
-# uv.lock is optional:
-#   - First build (no uv.lock): uv resolves dependencies and creates the lock file.
-#   - Subsequent builds: copy uv.lock into the project root before building;
-#     then switch to `uv sync --frozen --no-cache` for reproducible installs.
-# Workflow: `make build` → `make lock` → add uv.lock to git → `make build` again.
-COPY pyproject.toml ./
-RUN uv venv $VIRTUAL_ENV && uv sync --no-cache
+# uv.lock is committed to the repo for reproducible builds.
+# Workflow: update pyproject.toml → `make lock` → commit uv.lock → `make build`.
+COPY pyproject.toml uv.lock ./
+RUN uv venv $VIRTUAL_ENV && uv sync --frozen --no-cache
 # ----------------------------
 
 RUN mkdir -p /home/docker/.npm-global && \
-    npm config set prefix '/home/docker/.npm-global'
+    chown -R docker:docker /home/docker/.npm-global
 
-ENV PATH="/home/docker/.npm-global/bin:$PATH"
+ENV NPM_CONFIG_PREFIX=/home/docker/.npm-global
 
-RUN npm install -g @anthropic-ai/claude-code @google/gemini-cli @github/copilot
+ENV PATH=$PATH:/home/docker/.npm-global/bin:$HOME/.local/bin
+
+ENV NODE_PATH=/home/docker/.npm-global/lib/node_modules
+
+RUN npm install -g @google/gemini-cli @github/copilot
+
+RUN curl -fsSL https://claude.ai/install.sh | bash
 
 RUN mkdir -p /home/docker/.ssh && \
     chmod 700 /home/docker/.ssh && \
